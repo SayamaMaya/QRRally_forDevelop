@@ -75,38 +75,6 @@
             align-items: center;
             padding: 20px;
         }
-        #loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            z-index: 400;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-        }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #000;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        #camera-trigger {
-            display: none;
-            position: relative;
-            z-index: 50;
-        }
         #start-experience-overlay {
             position: fixed;
             top: 0;
@@ -115,7 +83,7 @@
             height: 100%;
             background: white;
             z-index: 350;
-            display: none;
+            display: flex; /* 最初から表示 */
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -124,11 +92,7 @@
 </head>
 <body class="flex flex-col items-center min-h-screen p-4">
 
-    <div id="loading-overlay">
-        <div class="spinner"></div>
-        <div id="loading-text">セッションを準備中...</div>
-    </div>
-
+    <!-- 開始ボタン画面 -->
     <div id="start-experience-overlay">
         <button id="entry-btn" class="px-12 py-4 bg-black text-white rounded-full font-bold shadow-xl">
             ラリーを開始する
@@ -142,6 +106,7 @@
         </div>
 
         <div class="px-6 pb-8">
+            <!-- スタンプグリッド -->
             <div id="stamps-grid" class="grid grid-cols-4 gap-3 mb-8">
                 <div id="stamp-1" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
                 <div id="stamp-2" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
@@ -173,6 +138,7 @@
         </div>
     </div>
 
+    <!-- スタンプ発見時モーダル -->
     <div id="play-modal">
         <div class="bg-white p-8 rounded-[2rem] text-center max-w-xs w-full">
             <p class="font-bold mb-6 text-lg">スタンプ発見！</p>
@@ -181,46 +147,12 @@
         </div>
     </div>
 
+    <!-- フル画面動画再生 -->
     <div id="video-overlay">
         <video id="ar-video" playsinline></video>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // ==========================================
-        // Firebase 設定の切り替えロジック
-        // ==========================================
-        let firebaseConfig;
-        let appId;
-        let isProduction = false;
-
-        // Canvas環境かどうかをチェック
-        if (typeof __firebase_config !== 'undefined') {
-            firebaseConfig = JSON.parse(__firebase_config);
-            appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        } else {
-            // GitHub Pages などの本番環境用の設定
-            isProduction = true;
-            firebaseConfig = {
-                apiKey: "YOUR_API_KEY", // ここを書き換える
-                authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-                projectId: "YOUR_PROJECT_ID",
-                storageBucket: "YOUR_PROJECT_ID.appspot.com",
-                messagingSenderId: "YOUR_SENDER_ID",
-                appId: "YOUR_APP_ID"
-            };
-            appId = "bookstore-rally-v1";
-        }
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // ==========================================
-
+    <script>
         const scanCamera = document.getElementById('scan-camera');
         const qrCanvas = document.getElementById('qr-canvas');
         const qrCtx = qrCanvas.getContext('2d', { willReadFrequently: true });
@@ -236,7 +168,6 @@
         const messageBox = document.getElementById('message');
         const successView = document.getElementById('success-view');
         const scannerView = document.getElementById('scanner-view');
-        const loadingOverlay = document.getElementById('loading-overlay');
 
         const stampCharacters = { 
             'stamp1': 'し', 'stamp2': 'ょ', 'stamp3': 'せ', 'stamp4': 'ん', 
@@ -257,6 +188,7 @@
             'stamp8': 'https://www.dropbox.com/scl/fi/tdgb9tvwmmslbkb88yr1d/ra.mov?rlkey=r2hiq48rtiy421xn47neah4wv&st=7basxv6h&raw=1'
         };
 
+        // メモリ上でスタンプ状態を保持（ページをリロードするとリセットされます）
         let stampsCollected = { 
             'stamp1': false, 'stamp2': false, 'stamp3': false, 'stamp4': false,
             'stamp5': false, 'stamp6': false, 'stamp7': false, 'stamp8': false 
@@ -265,47 +197,9 @@
         let stream = null;
         let scanId = null;
         let currentKeyword = null;
-        let currentUser = null;
-        let authSettled = false;
 
-        async function startAuth() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (e) { 
-                console.error("Auth error:", e);
-                document.getElementById('loading-text').innerText = isProduction ? "Firebase設定を正しく入力してください。" : "認証エラーが発生しました。";
-            }
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                // コレクションパスを柔軟に対応
-                const path = isProduction ? ['stamp_rally', appId, 'users', user.uid] : ['artifacts', appId, 'users', user.uid, 'progress', 'stamps'];
-                const userDocRef = doc(db, ...path);
-                
-                onSnapshot(userDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        stampsCollected = { ...stampsCollected, ...docSnap.data() };
-                        syncUI();
-                    } else {
-                        syncUI();
-                    }
-                    if (!authSettled) {
-                        authSettled = true;
-                        loadingOverlay.style.display = 'none';
-                        entryOverlay.style.display = 'flex';
-                    }
-                }, (err) => {
-                    console.error("Firestore error:", err);
-                    document.getElementById('loading-text').innerText = "データベースの権限エラーです。";
-                });
-            }
-        });
+        // UIの初期化
+        syncUI();
 
         entryBtn.onclick = () => {
             entryOverlay.style.display = 'none';
@@ -331,7 +225,7 @@
                 if (!scanId) scanId = requestAnimationFrame(scanTick);
             } catch (err) {
                 console.error("Camera init error:", err);
-                showMessage("カメラを起動できませんでした。");
+                showMessage("カメラを起動できませんでした。HTTPS接続か確認してください。");
             }
         }
 
@@ -372,17 +266,11 @@
             }
         }
 
-        startVideoBtn.onclick = async () => {
+        startVideoBtn.onclick = () => {
             if (!currentKeyword) return;
             playModal.style.display = 'none';
             
             stampsCollected[currentKeyword] = true;
-            const path = isProduction ? ['stamp_rally', appId, 'users', currentUser.uid] : ['artifacts', appId, 'users', currentUser.uid, 'progress', 'stamps'];
-            const userDocRef = doc(db, ...path);
-            try {
-                await setDoc(userDocRef, stampsCollected);
-            } catch (e) { console.error("Save error:", e); }
-            
             syncUI();
             
             if (allCollected()) {
@@ -449,8 +337,6 @@
                 scanId = null;
             }
         }
-
-        startAuth();
     </script>
 </body>
 </html>
