@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店内スタンプラリー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f8f8;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            overscroll-behavior: none;
+            color: #000;
+        }
+        .stamp-slot {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .stamp-active {
+            background-color: #000 !important;
+            border-color: #000 !important;
+            color: #fff !important;
+        }
+        #video-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            background: #000;
+            border: 2px solid #000;
+        }
+        #scanner-line {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.5);
+            animation: scan 3s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        #video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 300;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #ar-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #play-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 150;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 400;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #camera-trigger {
+            display: none;
+            position: relative;
+            z-index: 50;
+        }
+        #start-experience-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 350;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen p-4">
+
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text">セッションを準備中...</div>
+    </div>
+
+    <div id="start-experience-overlay">
+        <button id="entry-btn" class="px-12 py-4 bg-black text-white rounded-full font-bold shadow-xl">
+            ラリーを開始する
+        </button>
+    </div>
+
+    <div class="max-w-md w-full bg-white rounded-[2.5rem] shadow-lg overflow-hidden border border-gray-100">
+        <div class="p-6 text-center">
+            <h1 class="text-2xl font-bold tracking-tight">店内スタンプラリー</h1>
+            <p class="text-[11px] text-gray-400 mt-2 font-medium">全8箇所のQRを読み込んでください</p>
+        </div>
+
+        <div class="px-6 pb-8">
+            <div id="stamps-grid" class="grid grid-cols-4 gap-3 mb-8">
+                <div id="stamp-1" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-2" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-3" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-4" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-5" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-6" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-7" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-8" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+            </div>
+
+            <div id="scanner-view">
+                <div id="video-container" class="aspect-square w-full mb-8">
+                    <button id="camera-trigger" class="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-gray-50 text-black font-bold z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        カメラを起動する
+                    </button>
+                    <video id="scan-camera" class="w-full h-full object-cover" playsinline muted></video>
+                    <canvas id="qr-canvas" class="hidden"></canvas>
+                    <div id="scanner-line"></div>
+                </div>
+            </div>
+
+            <div id="message" class="mt-6 p-4 rounded-2xl text-center text-sm font-bold hidden bg-[#fcfcfc] text-black border-2 border-black"></div>
+
+            <div id="success-view" class="hidden text-center py-12 bg-[#fcfcfc] rounded-[2.5rem] border border-gray-100">
+                <h2 class="text-2xl font-bold text-black mb-4">コンプリート！</h2>
+                <a href="https://sayama-maya-photframe.netlify.app/" target="_blank" class="inline-block px-12 py-4 rounded-full font-bold shadow-xl text-sm text-white bg-black">特典を受け取る</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="play-modal">
+        <div class="bg-white p-8 rounded-[2rem] text-center max-w-xs w-full">
+            <p class="font-bold mb-6 text-lg">スタンプ発見！</p>
+            <p class="text-sm text-gray-500 mb-6">動画を再生します</p>
+            <button id="start-video-btn" class="w-full py-4 bg-black text-white rounded-full font-bold shadow-lg">動画を再生する</button>
+        </div>
+    </div>
+
+    <div id="video-overlay">
+        <video id="ar-video" playsinline></video>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        const scanCamera = document.getElementById('scan-camera');
+        const qrCanvas = document.getElementById('qr-canvas');
+        const qrCtx = qrCanvas.getContext('2d', { willReadFrequently: true });
+        
+        const videoOverlay = document.getElementById('video-overlay');
+        const arVideo = document.getElementById('ar-video');
+        const playModal = document.getElementById('play-modal');
+        const startVideoBtn = document.getElementById('start-video-btn');
+        const cameraTrigger = document.getElementById('camera-trigger');
+        const entryOverlay = document.getElementById('start-experience-overlay');
+        const entryBtn = document.getElementById('entry-btn');
+        
+        const messageBox = document.getElementById('message');
+        const successView = document.getElementById('success-view');
+        const scannerView = document.getElementById('scanner-view');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        const stampCharacters = { 
+            'stamp1': 'し', 'stamp2': 'ょ', 'stamp3': 'せ', 'stamp4': 'ん', 
+            'stamp5': 'は', 'stamp6': 'す', 'stamp7': 'ご', 'stamp8': 'い' 
+        };
+
+        const OP_VIDEO_URL = 'https://www.dropbox.com/scl/fi/u8mfjfxehr3hq77i91x9q/Mi.mov?rlkey=hot7x01ut2vcwsu89ap6v0gl0&st=mgvxtvi2&raw=1';
+        const COMPLETE_VIDEO_URL = 'https://www.dropbox.com/scl/fi/tdgb9tvwmmslbkb88yr1d/ra.mov?rlkey=r2hiq48rtiy421xn47neah4wv&st=7basxv6h&raw=1';
+
+        const videoUrls = {
+            'stamp1': 'https://www.dropbox.com/scl/fi/u8mfjfxehr3hq77i91x9q/Mi.mov?rlkey=hot7x01ut2vcwsu89ap6v0gl0&st=mgvxtvi2&raw=1',
+            'stamp2': 'https://www.dropbox.com/scl/fi/tdgb9tvwmmslbkb88yr1d/ra.mov?rlkey=r2hiq48rtiy421xn47neah4wv&st=7basxv6h&raw=1',
+            'stamp3': 'https://www.dropbox.com/scl/fi/8o19jbjjti8rfcyw149k4/i.mov?rlkey=64x3lvsswzgva40o9bi2cwxqx&st=5v0stn02&raw=1',
+            'stamp4': 'https://www.dropbox.com/scl/fi/u8mfjfxehr3hq77i91x9q/Mi.mov?rlkey=hot7x01ut2vcwsu89ap6v0gl0&st=mgvxtvi2&raw=1',
+            'stamp5': 'https://www.dropbox.com/scl/fi/tdgb9tvwmmslbkb88yr1d/ra.mov?rlkey=r2hiq48rtiy421xn47neah4wv&st=7basxv6h&raw=1',
+            'stamp6': 'https://www.dropbox.com/scl/fi/8o19jbjjti8rfcyw149k4/i.mov?rlkey=64x3lvsswzgva40o9bi2cwxqx&st=5v0stn02&raw=1',
+            'stamp7': 'https://www.dropbox.com/scl/fi/u8mfjfxehr3hq77i91x9q/Mi.mov?rlkey=hot7x01ut2vcwsu89ap6v0gl0&st=mgvxtvi2&raw=1',
+            'stamp8': 'https://www.dropbox.com/scl/fi/tdgb9tvwmmslbkb88yr1d/ra.mov?rlkey=r2hiq48rtiy421xn47neah4wv&st=7basxv6h&raw=1'
+        };
+
+        let stampsCollected = { 
+            'stamp1': false, 'stamp2': false, 'stamp3': false, 'stamp4': false,
+            'stamp5': false, 'stamp6': false, 'stamp7': false, 'stamp8': false 
+        };
+        
+        let stream = null;
+        let scanId = null;
+        let currentKeyword = null;
+        let currentUser = null;
+        let authSettled = false;
+
+        async function startAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) { console.error("Auth error:", e); }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'progress', 'stamps');
+                onSnapshot(userDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        stampsCollected = { ...stampsCollected, ...docSnap.data() };
+                        syncUI();
+                    } else {
+                        syncUI();
+                    }
+                    if (!authSettled) {
+                        authSettled = true;
+                        loadingOverlay.style.display = 'none';
+                        entryOverlay.style.display = 'flex';
+                    }
+                }, (err) => console.error("Firestore error:", err));
+            }
+        });
+
+        entryBtn.onclick = () => {
+            entryOverlay.style.display = 'none';
+            playVideo(OP_VIDEO_URL, 'opening');
+        };
+
+        cameraTrigger.onclick = async () => {
+            await initCamera();
+        };
+
+        async function initCamera() {
+            if (allCollected()) return;
+            // 既存のストリームがあれば停止
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+            }
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                scanCamera.srcObject = stream;
+                // play()のPromiseをキャッチ
+                await scanCamera.play().catch(e => {
+                    if (e.name !== 'AbortError') console.error("Camera play error:", e);
+                });
+                cameraTrigger.style.display = 'none';
+                if (!scanId) scanId = requestAnimationFrame(scanTick);
+            } catch (err) {
+                console.error("Camera init error:", err);
+                showMessage("カメラを起動できませんでした。設定を確認してください。");
+            }
+        }
+
+        function scanTick() {
+            if (!stream) return;
+            if (scanCamera.readyState === scanCamera.HAVE_ENOUGH_DATA) {
+                qrCanvas.height = scanCamera.videoHeight;
+                qrCanvas.width = scanCamera.videoWidth;
+                qrCtx.drawImage(scanCamera, 0, 0, qrCanvas.width, qrCanvas.height);
+                const imageData = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                if (code) handleScan(code.data);
+            }
+            if (videoOverlay.style.display !== 'flex' && playModal.style.display !== 'flex') {
+                scanId = requestAnimationFrame(scanTick);
+            } else {
+                scanId = null;
+            }
+        }
+
+        function handleScan(data) {
+            ['stamp1', 'stamp2', 'stamp3', 'stamp4', 'stamp5', 'stamp6', 'stamp7', 'stamp8'].forEach(keyword => {
+                if (data.includes(keyword) && !stampsCollected[keyword]) {
+                    currentKeyword = keyword;
+                    playModal.style.display = 'flex';
+                }
+            });
+        }
+
+        async function playVideo(url, type) {
+            videoOverlay.style.display = 'flex';
+            arVideo.src = url;
+            arVideo.dataset.videoType = type;
+            try {
+                await arVideo.play();
+            } catch (e) {
+                if (e.name !== 'AbortError') console.error("Video play error:", e);
+            }
+        }
+
+        startVideoBtn.onclick = async () => {
+            if (!currentKeyword) return;
+            playModal.style.display = 'none';
+            
+            stampsCollected[currentKeyword] = true;
+            const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'progress', 'stamps');
+            try {
+                await setDoc(userDocRef, stampsCollected);
+            } catch (e) { console.error("Save error:", e); }
+            
+            syncUI();
+            
+            if (allCollected()) {
+                playVideo(COMPLETE_VIDEO_URL, 'complete');
+            } else {
+                playVideo(videoUrls[currentKeyword], 'normal');
+            }
+        };
+
+        arVideo.onended = () => {
+            const type = arVideo.dataset.videoType;
+            arVideo.pause();
+            arVideo.src = "";
+            videoOverlay.style.display = 'none';
+
+            if (type === 'opening') {
+                cameraTrigger.style.display = 'flex';
+            } else if (type === 'complete') {
+                showComplete();
+            } else {
+                if (!allCollected()) {
+                    if (!scanId) scanId = requestAnimationFrame(scanTick);
+                } else {
+                    showComplete();
+                }
+            }
+        };
+
+        function syncUI() {
+            Object.keys(stampsCollected).forEach(id => {
+                const num = id.replace('stamp', '');
+                const slot = document.getElementById(`stamp-${num}`);
+                if (!slot) return;
+
+                if (stampsCollected[id]) {
+                    slot.classList.add('stamp-active');
+                    slot.classList.remove('text-gray-200', 'bg-white');
+                    slot.innerHTML = `<span class="text-3xl font-bold">${stampCharacters[id]}</span>`;
+                } else {
+                    slot.classList.remove('stamp-active');
+                    slot.classList.add('text-gray-200', 'bg-white');
+                    slot.innerHTML = `<span class="text-[8px] font-bold">Spot ${num}</span>`;
+                }
+            });
+        }
+
+        function showMessage(text) {
+            messageBox.textContent = text;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => messageBox.classList.add('hidden'), 3000);
+        }
+
+        function allCollected() { return Object.values(stampsCollected).every(v => v); }
+
+        function showComplete() {
+            scannerView.classList.add('hidden');
+            successView.classList.remove('hidden');
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+                stream = null;
+            }
+            if (scanId) {
+                cancelAnimationFrame(scanId);
+                scanId = null;
+            }
+        }
+
+        startAuth();
+    </script>
+</body>
+</html>
