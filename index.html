@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>店内スタンプラリー</title>
+    <title>書泉バーチャルボイスラリー</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -101,7 +101,7 @@
 
     <div class="max-w-md w-full bg-white rounded-[2.5rem] shadow-lg overflow-hidden border border-gray-100">
         <div class="p-6 text-center">
-            <h1 class="text-2xl font-bold tracking-tight">店内スタンプラリー</h1>
+            <h1 class="text-2xl font-bold tracking-tight">書泉バーチャルボイスラリー</h1>
             <p class="text-[11px] text-gray-400 mt-2 font-medium">全8箇所のQRを読み込んでください</p>
         </div>
 
@@ -141,8 +141,8 @@
     <!-- スタンプ発見時モーダル -->
     <div id="play-modal">
         <div class="bg-white p-8 rounded-[2rem] text-center max-w-xs w-full">
-            <p class="font-bold mb-6 text-lg">スタンプ発見！</p>
-            <p class="text-sm text-gray-500 mb-6">動画を再生します</p>
+            <p class="font-bold mb-6 text-lg">バーチャルスタッフ発見！</p>
+            <p class="text-sm text-gray-500 mb-6">研修を開始します</p>
             <button id="start-video-btn" class="w-full py-4 bg-black text-white rounded-full font-bold shadow-lg">動画を再生する</button>
         </div>
     </div>
@@ -174,18 +174,18 @@
             'stamp5': 'は', 'stamp6': 'す', 'stamp7': 'ご', 'stamp8': 'い' 
         };
 
-        const OP_VIDEO_URL = 'https://www.dropbox.com/scl/fi/oac3w41ny170n2x63zzwj/OP.mov?rlkey=8up6edjfawjfl5hzjr6vupm2l&st=slcckwyu&raw=1';
+        const OP_VIDEO_URL = 'https://www.dropbox.com/scl/fi/yhk2pskvldgtvnbwhwroo/2-_.mp4?rlkey=lgrm0zexvl9uk0yculq9jy856&st=knfyt0y1&raw=1';
         const COMPLETE_VIDEO_URL = 'https://www.dropbox.com/scl/fi/tdgb9tvwmmslbkb88yr1d/ra.mov?rlkey=r2hiq48rtiy421xn47neah4wv&st=7basxv6h&raw=1';
 
         const videoUrls = {
-            'stamp1': 'https://www.dropbox.com/scl/fi/dkksnzkyrpzg1eq32gwin/1F.mov?rlkey=ykuw0sczudeuz9hyqxveskmtj&st=o8zjgps3&raw=1',
-            'stamp2': 'https://www.dropbox.com/scl/fi/tdgb9tvwmmslbkb88yr1d/ra.mov?rlkey=r2hiq48rtiy421xn47neah4wv&st=7basxv6h&raw=1',
-            'stamp3': 'https://www.dropbox.com/scl/fi/8o19jbjjti8rfcyw149k4/i.mov?rlkey=64x3lvsswzgva40o9bi2cwxqx&st=5v0stn02&raw=1',
-            'stamp4': 'https://www.dropbox.com/scl/fi/u8mfjfxehr3hq77i91x9q/Mi.mov?rlkey=hot7x01ut2vcwsu89ap6v0gl0&st=mgvxtvi2&raw=1',
-            'stamp5': 'https://www.dropbox.com/scl/fi/tdgb9tvwmmslbkb88yr1d/ra.mov?rlkey=r2hiq48rtiy421xn47neah4wv&st=7basxv6h&raw=1',
-            'stamp6': 'https://www.dropbox.com/scl/fi/8o19jbjjti8rfcyw149k4/i.mov?rlkey=64x3lvsswzgva40o9bi2cwxqx&st=5v0stn02&raw=1',
-            'stamp7': 'https://www.dropbox.com/scl/fi/u8mfjfxehr3hq77i91x9q/Mi.mov?rlkey=hot7x01ut2vcwsu89ap6v0gl0&st=mgvxtvi2&raw=1',
-            'stamp8': 'https://www.dropbox.com/scl/fi/tdgb9tvwmmslbkb88yr1d/ra.mov?rlkey=r2hiq48rtiy421xn47neah4wv&st=7basxv6h&raw=1'
+            'stamp1': 'https://www.dropbox.com/scl/fi/yhk2pskvldgtvnbwhwroo/2-_.mp4?rlkey=lgrm0zexvl9uk0yculq9jy856&st=knfyt0y1&raw=1',
+            'stamp2': 'https://www.dropbox.com/scl/fi/yhk2pskvldgtvnbwhwroo/2-_.mp4?rlkey=lgrm0zexvl9uk0yculq9jy856&st=knfyt0y1&raw=1',
+            'stamp3': 'https://www.dropbox.com/scl/fi/yhk2pskvldgtvnbwhwroo/2-_.mp4?rlkey=lgrm0zexvl9uk0yculq9jy856&st=knfyt0y1&raw=1',
+            'stamp4': 'https://www.dropbox.com/scl/fi/yhk2pskvldgtvnbwhwroo/2-_.mp4?rlkey=lgrm0zexvl9uk0yculq9jy856&st=knfyt0y1&raw=1',
+            'stamp5': 'https://www.dropbox.com/scl/fi/yhk2pskvldgtvnbwhwroo/2-_.mp4?rlkey=lgrm0zexvl9uk0yculq9jy856&st=knfyt0y1&raw=1',
+            'stamp6': 'https://www.dropbox.com/scl/fi/yhk2pskvldgtvnbwhwroo/2-_.mp4?rlkey=lgrm0zexvl9uk0yculq9jy856&st=knfyt0y1&raw=1',
+            'stamp7': 'https://www.dropbox.com/scl/fi/yhk2pskvldgtvnbwhwroo/2-_.mp4?rlkey=lgrm0zexvl9uk0yculq9jy856&st=knfyt0y1&raw=1',
+            'stamp8': 'https://www.dropbox.com/scl/fi/yhk2pskvldgtvnbwhwroo/2-_.mp4?rlkey=lgrm0zexvl9uk0yculq9jy856&st=knfyt0y1&raw=1'
         };
 
         // メモリ上でスタンプ状態を保持（ページをリロードするとリセットされます）
