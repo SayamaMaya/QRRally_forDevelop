@@ -18,6 +18,7 @@
         }
         .stamp-slot {
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
         }
         .stamp-active {
             background-color: #000 !important;
@@ -39,25 +40,25 @@
         @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
         #video-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000; z-index: 300; display: none;
+            background: #000; z-index: 500; display: none;
             flex-direction: column; justify-content: center; align-items: center;
         }
         #ar-video { width: 100%; height: 100%; object-fit: contain; }
-        #play-modal {
+        .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 150; display: none;
+            background: rgba(0,0,0,0.8); z-index: 450; display: none;
             justify-content: center; align-items: center; padding: 20px;
         }
         #start-experience-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 400; display: flex;
+            background: white; z-index: 600; display: flex;
             flex-direction: column; justify-content: center; align-items: center;
         }
         #close-video {
             position: absolute; top: 20px; right: 20px; width: 44px; height: 44px;
-            background: rgba(0,0,0,0.6); color: white; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 28px; z-index: 310; border: 2px solid white; cursor: pointer;
+            background: rgba(0,0,0,0.5); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            z-index: 510; cursor: pointer; border: 1px solid rgba(255,255,255,0.3);
         }
     </style>
 </head>
@@ -79,19 +80,19 @@
     <div class="max-w-md w-full bg-white rounded-[2.5rem] shadow-lg overflow-hidden border border-gray-100">
         <div class="p-6 text-center">
             <h1 class="text-2xl font-bold tracking-tight">書泉バーチャルボイスラリー</h1>
-            <p class="text-[11px] text-gray-400 mt-2 font-medium">全8箇所のQRを読み込んでください</p>
+            <p class="text-[11px] text-gray-400 mt-2 font-medium">取得したスタンプをタップで動画を再生</p>
         </div>
 
         <div class="px-6 pb-8">
             <div id="stamps-grid" class="grid grid-cols-4 gap-3 mb-8">
-                <div id="stamp-1" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
-                <div id="stamp-2" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
-                <div id="stamp-3" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
-                <div id="stamp-4" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
-                <div id="stamp-5" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
-                <div id="stamp-6" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
-                <div id="stamp-7" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
-                <div id="stamp-8" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-1" onclick="replayVideo('stamp1')" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-2" onclick="replayVideo('stamp2')" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-3" onclick="replayVideo('stamp3')" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-4" onclick="replayVideo('stamp4')" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-5" onclick="replayVideo('stamp5')" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-6" onclick="replayVideo('stamp6')" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-7" onclick="replayVideo('stamp7')" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
+                <div id="stamp-8" onclick="replayVideo('stamp8')" class="stamp-slot aspect-square rounded-xl border-2 border-gray-100 flex items-center justify-center text-gray-200 bg-white"></div>
             </div>
 
             <div id="scanner-view">
@@ -102,8 +103,6 @@
                 </div>
             </div>
 
-            <div id="message" class="mt-6 p-4 rounded-2xl text-center text-sm font-bold hidden bg-[#fcfcfc] text-black border-2 border-black"></div>
-
             <div id="success-view" class="hidden text-center py-12 bg-[#fcfcfc] rounded-[2.5rem] border border-gray-100">
                 <h2 class="text-2xl font-bold text-black mb-4">コンプリート！</h2>
                 <a href="https://sayama-maya-photframe.netlify.app/" target="_blank" class="inline-block px-12 py-4 rounded-full font-bold shadow-xl text-sm text-white bg-black">特典を受け取る</a>
@@ -111,17 +110,39 @@
         </div>
     </div>
 
-    <div id="play-modal">
-        <div class="bg-white p-8 rounded-[2rem] text-center max-w-xs w-full">
+    <!-- 発見モーダル -->
+    <div id="play-modal" class="modal-overlay">
+        <div class="bg-white p-8 rounded-[2rem] text-center max-w-xs w-full shadow-2xl">
             <p class="font-bold mb-6 text-lg">バーチャルスタッフ発見！</p>
             <p class="text-sm text-gray-500 mb-6">キーワードを聞いてね</p>
             <button id="start-video-btn" class="w-full py-4 bg-black text-white rounded-full font-bold shadow-lg">研修を開始する</button>
         </div>
     </div>
 
+    <!-- キーワード入力モーダル -->
+    <div id="keyword-modal" class="modal-overlay">
+        <div class="bg-white p-8 rounded-[2rem] text-center max-w-xs w-full shadow-2xl">
+            <p class="font-bold mb-4 text-lg">キーワードを入力</p>
+            <p class="text-[11px] text-gray-400 mb-6">スタッフから聞いたキーワードは？</p>
+            <input type="text" id="keyword-input" class="w-full border-2 border-gray-100 rounded-xl p-3 mb-6 text-center text-xl font-bold focus:border-black outline-none" placeholder="ここに入力">
+            <button id="submit-keyword-btn" class="w-full py-4 bg-black text-white rounded-full font-bold shadow-lg">スタンプを押す</button>
+            <button id="cancel-keyword-btn" class="mt-4 text-gray-400 text-sm font-medium">キャンセル</button>
+        </div>
+    </div>
+
+    <!-- 誤入力エラーモーダル -->
+    <div id="error-modal" class="modal-overlay">
+        <div class="bg-white p-8 rounded-[2rem] text-center max-w-xs w-full shadow-2xl border-2 border-red-500">
+            <p class="font-bold mb-4 text-lg text-red-600">キーワードが違うよ</p>
+            <p class="text-sm text-gray-600 mb-6">もう一度よく聞いてみてね</p>
+            <button id="retry-btn" class="w-full py-4 bg-black text-white rounded-full font-bold shadow-lg">OK</button>
+        </div>
+    </div>
+
+    <!-- 動画再生オーバーレイ -->
     <div id="video-overlay">
-        <button id="close-video">×</button>
-        <video id="ar-video" playsinline></video>
+        <div id="close-video" onclick="closeVideoManually()">×</div>
+        <video id="ar-video" playsinline controls></video>
     </div>
 
     <script>
@@ -130,17 +151,25 @@
         const qrCtx = qrCanvas.getContext('2d', { willReadFrequently: true });
         const videoOverlay = document.getElementById('video-overlay');
         const arVideo = document.getElementById('ar-video');
-        const closeVideoBtn = document.getElementById('close-video');
+        
         const playModal = document.getElementById('play-modal');
         const startVideoBtn = document.getElementById('start-video-btn');
+        
+        const keywordModal = document.getElementById('keyword-modal');
+        const keywordInput = document.getElementById('keyword-input');
+        const submitKeywordBtn = document.getElementById('submit-keyword-btn');
+        const cancelKeywordBtn = document.getElementById('cancel-keyword-btn');
+
+        const errorModal = document.getElementById('error-modal');
+        const retryBtn = document.getElementById('retry-btn');
+
         const entryOverlay = document.getElementById('start-experience-overlay');
         const cameraInitBtn = document.getElementById('camera-init-btn');
-        const messageBox = document.getElementById('message');
         const successView = document.getElementById('success-view');
         const scannerView = document.getElementById('scanner-view');
 
-        const STORAGE_KEY = 'shosen_rally_progress_v5';
-        const STARTED_KEY = 'shosen_rally_started_v5';
+        const STORAGE_KEY = 'shosen_rally_progress_v12';
+        const STARTED_KEY = 'shosen_rally_started_v12';
 
         const stampCharacters = { 
             'stamp1': 'し', 'stamp2': 'ょ', 'stamp3': 'せ', 'stamp4': 'ん', 
@@ -168,7 +197,7 @@
 
         let stream = null;
         let scanId = null;
-        let currentKeyword = null;
+        let currentTarget = null;
 
         function syncUI() {
             Object.keys(stampsCollected).forEach(id => {
@@ -177,11 +206,9 @@
                 if (!slot) return;
                 if (stampsCollected[id]) {
                     slot.classList.add('stamp-active');
-                    slot.classList.remove('text-gray-200', 'bg-white');
                     slot.innerHTML = `<span class="text-3xl font-bold">${stampCharacters[id]}</span>`;
                 } else {
                     slot.classList.remove('stamp-active');
-                    slot.classList.add('text-gray-200', 'bg-white');
                     slot.innerHTML = `<span class="text-[8px] font-bold">Spot ${num}</span>`;
                 }
             });
@@ -199,18 +226,13 @@
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 scanCamera.srcObject = stream;
                 await scanCamera.play();
-
                 localStorage.setItem(STARTED_KEY, 'true');
                 entryOverlay.style.display = 'none';
-
                 playVideo(OP_VIDEO_URL, 'opening');
-            } catch (err) {
-                alert("カメラの起動に失敗しました。");
-            }
+            } catch (err) { console.error(err); }
         };
 
-        const isStarted = localStorage.getItem(STARTED_KEY);
-        if (isStarted === 'true') {
+        if (localStorage.getItem(STARTED_KEY) === 'true') {
             entryOverlay.style.display = 'none';
             initCameraAuto();
         }
@@ -234,19 +256,26 @@
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
                 if (code) handleScan(code.data);
             }
-            if (videoOverlay.style.display !== 'flex' && playModal.style.display !== 'flex') {
+            if (videoOverlay.style.display !== 'flex' && playModal.style.display !== 'flex' && 
+                keywordModal.style.display !== 'flex' && errorModal.style.display !== 'flex') {
                 setTimeout(() => { scanId = requestAnimationFrame(scanTick); }, 300);
             } else { scanId = null; }
         }
 
         function handleScan(data) {
-            Object.keys(stampsCollected).forEach(keyword => {
-                if (data.includes(keyword) && !stampsCollected[keyword]) {
-                    currentKeyword = keyword;
+            Object.keys(stampsCollected).forEach(id => {
+                if (data.includes(id) && !stampsCollected[id]) {
+                    currentTarget = id;
                     playModal.style.display = 'flex';
                 }
             });
         }
+
+        window.replayVideo = function(id) {
+            if (stampsCollected[id]) {
+                playVideo(videoUrls[id], 'replay');
+            }
+        };
 
         async function playVideo(url, type) {
             videoOverlay.style.display = 'flex';
@@ -255,30 +284,65 @@
             try { await arVideo.play(); } catch (e) {}
         }
 
-        closeVideoBtn.onclick = () => handleVideoEnd();
-        arVideo.onended = () => handleVideoEnd();
+        function closeVideoManually() {
+            handleVideoClose();
+        }
 
-        function handleVideoEnd() {
+        arVideo.onended = () => handleVideoClose();
+        
+        function handleVideoClose() {
             const type = arVideo.dataset.videoType;
             arVideo.pause();
             arVideo.src = "";
             videoOverlay.style.display = 'none';
-            if (!Object.values(stampsCollected).every(v => v)) {
-                if (!scanId) scanId = requestAnimationFrame(scanTick);
-            } else { showComplete(); }
+            
+            if (type === 'normal') {
+                keywordInput.value = "";
+                keywordModal.style.display = 'flex';
+            } else {
+                if (Object.values(stampsCollected).every(v => v) && type !== 'replay') {
+                    showComplete();
+                } else if (!scanId) {
+                    scanId = requestAnimationFrame(scanTick);
+                }
+            }
         }
 
         startVideoBtn.onclick = () => {
-            if (!currentKeyword) return;
+            if (!currentTarget) return;
             playModal.style.display = 'none';
-            stampsCollected[currentKeyword] = true;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(stampsCollected));
-            syncUI();
-            if (Object.values(stampsCollected).every(v => v)) {
-                playVideo(COMPLETE_VIDEO_URL, 'complete');
+            playVideo(videoUrls[currentTarget], 'normal');
+        };
+
+        submitKeywordBtn.onclick = () => {
+            if (!currentTarget) return;
+            const input = keywordInput.value.trim();
+            if (input === stampCharacters[currentTarget]) {
+                stampsCollected[currentTarget] = true;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(stampsCollected));
+                keywordModal.style.display = 'none';
+                syncUI();
+                
+                if (Object.values(stampsCollected).every(v => v)) {
+                    playVideo(COMPLETE_VIDEO_URL, 'complete');
+                } else if (!scanId) {
+                    scanId = requestAnimationFrame(scanTick);
+                }
             } else {
-                playVideo(videoUrls[currentKeyword], 'normal');
+                keywordModal.style.display = 'none';
+                errorModal.style.display = 'flex';
             }
+        };
+
+        retryBtn.onclick = () => {
+            errorModal.style.display = 'none';
+            playModal.style.display = 'flex'; // 「研修を開始する」モーダルに戻る
+        };
+
+        cancelKeywordBtn.onclick = () => {
+            keywordModal.style.display = 'none';
+            currentTarget = null;
+            if (!scanId) scanId = requestAnimationFrame(scanTick);
         };
 
         function showComplete() {
